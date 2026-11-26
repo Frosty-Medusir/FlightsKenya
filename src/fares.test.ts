@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { median, normalizeFare, parseFeed } from "./fares.ts";
+import { isValidDepartureDate, median, normalizeFare, parseFeed } from "./fares.ts";
+
+test("departure dates require a valid YYYY-MM-DD calendar date", () => {
+  assert.equal(isValidDepartureDate("2028-02-29"), true);
+  assert.equal(isValidDepartureDate("2027-02-29"), false);
+  assert.equal(isValidDepartureDate("2027-2-09"), false);
+});
 
 test("median handles empty, odd, and even sample sets", () => {
   assert.equal(median([]), null);

@@ -383,9 +383,26 @@ def load_offers(app_url: str, secret: str, offers: list[dict[str, str | int | No
     return result["saved"]
 
 
-def collect_feed(url: str, app_url: str, secret: str, index: int, total: int) -> tuple[int, int, int]:
+def collect_feed(
+    url: str,
+    app_url: str,
+    secret: str,
+    index: int,
+    total: int,
+    now: datetime | None = None,
+) -> tuple[int, int, int]:
     payload = fetch_feed(url)
     fares, rejected = parse_feed(payload)
+    current_time = now or datetime.now(timezone.utc)
+    if current_time.tzinfo is None or current_time.utcoffset() is None:
+        raise ValueError("Collection time must include a timezone.")
+    current_time = current_time.astimezone(timezone.utc)
+    upcoming_fares = [
+        fare for fare in fares
+        if datetime.fromisoformat(str(fare["departure"]).replace("Z", "+00:00")) > current_time
+    ]
+    rejected += len(fares) - len(upcoming_fares)
+    fares = upcoming_fares
     source = urlsplit(url).hostname or "configured-feed"
     batches = [
         fares[offset : offset + MAX_BATCH_SIZE]

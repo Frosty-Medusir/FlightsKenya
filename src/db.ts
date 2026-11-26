@@ -152,7 +152,11 @@ export async function listPublicOffers(origin: string, destination: string) {
   }));
 }
 
-export async function listFares(origin: string | null, destination: string | null) {
+export async function listFares(
+  origin: string | null,
+  destination: string | null,
+  departureDate: string | null = null,
+) {
   const rows = await sql.query(
     `SELECT origin, destination, carrier, departure, price_kes, booking_url
      FROM fares
@@ -160,8 +164,15 @@ export async function listFares(origin: string | null, destination: string | nul
        AND observed_at >= NOW() - INTERVAL '60 days'
        AND ($1::text IS NULL OR origin = $1)
        AND ($2::text IS NULL OR destination = $2)
+       AND (
+         $3::date IS NULL
+         OR (
+           departure >= (($3::date)::timestamp AT TIME ZONE 'Africa/Nairobi')
+           AND departure < ((($3::date + 1)::timestamp) AT TIME ZONE 'Africa/Nairobi')
+         )
+       )
      ORDER BY price_kes, departure`,
-    [origin, destination],
+    [origin, destination, departureDate],
   );
 
   const medians = await getRouteMedians();

@@ -9,7 +9,7 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); color: var(--ink); }
-button, select { font: inherit; }
+button, select, input { font: inherit; }
 .shell { max-width: 1080px; margin: auto; padding: 0 42px; }
 .topbar { height: 88px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: .12em; }
@@ -22,9 +22,10 @@ button, select { font: inherit; }
 h1 { margin: 0; font-size: clamp(48px, 7vw, 76px); line-height: .99; letter-spacing: -.055em; }
 h1 em { color: var(--green); font-family: Georgia, serif; font-weight: 600; letter-spacing: -.04em; }
 .lede { max-width: 370px; margin: 20px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
-.search-panel { display: grid; grid-template-columns: 1fr 30px 1fr auto; align-items: center; gap: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 6px; background: #fff; box-shadow: 0 12px 35px #223a2510; }
+.search-panel { display: grid; grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr) minmax(145px, .8fr) auto; align-items: center; gap: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 6px; background: #fff; box-shadow: 0 12px 35px #223a2510; }
 .search-panel label { display: grid; gap: 8px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .13em; }
 select { width: 100%; padding: 0 0 2px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 15px; font-weight: 600; }
+input[type="date"] { width: 100%; min-width: 0; padding: 0 0 2px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 14px; font-weight: 600; }
 .route-arrow { color: #a4afa5; text-align: center; }
 .search-button { display: flex; gap: 22px; align-items: center; padding: 14px 18px; border: 0; border-radius: 4px; background: var(--green); color: #fff; cursor: pointer; font-size: 12px; font-weight: 600; }
 .search-button:hover { background: #0c553e; }
@@ -73,6 +74,7 @@ footer { display: flex; justify-content: space-between; align-items: center; gap
   .topbar { height: 72px; }
   .intro { padding: 49px 0 30px; }
   .search-panel { grid-template-columns: 1fr 22px 1fr; gap: 12px; padding: 16px; }
+  .search-panel label:nth-of-type(3) { grid-column: 1 / -1; }
   .search-button { grid-column: 1 / -1; justify-content: space-between; }
   .results { padding: 42px 0 52px; }
   .section-heading { align-items: start; flex-direction: column; gap: 10px; }
