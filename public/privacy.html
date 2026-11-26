@@ -34,8 +34,7 @@
           We aim to handle personal data in accordance with Kenya's
           <strong>Data Protection Act, 2019 (No. 24 of 2019)</strong> and
           applicable regulations, including the Data Protection (General)
-          Regulations, 2021. Kenya's principal Data Protection Act is from
-          2019, not 2010.
+          Regulations, 2021.
         </p>
 
         <h2>1. Who is responsible</h2>
@@ -57,6 +56,12 @@
           <li>
             <strong>Support messages:</strong> if you email us, we receive your
             email address and whatever information you include in your message.
+          </li>
+          <li>
+            <strong>Rate-limiting information:</strong> when you subscribe to
+            alerts, our API stores a one-way hash of the request IP address to
+            limit repeated subscription attempts. Older rate-limit records are
+            cleaned up during later subscription requests.
           </li>
           <li>
             <strong>Technical information:</strong> our website, API, or hosting
@@ -102,13 +107,15 @@
         <h2>5. When information is shared</h2>
         <p>
           We share only what is needed to operate Flights Kenya with service
-          providers. Vercel hosts the public website and may process technical
-          request or diagnostic logs. The API/database host and the browser
-          push-notification service selected by your device may also process
-          the information needed for their functions. Those providers process
-          information under their own terms and privacy policies. We may also
-          disclose information when required by law or necessary to protect
-          the service and its users. We do not sell your personal data.
+          providers. Vercel hosts the public website and API and may process
+          technical request or diagnostic logs. Neon hosts the PostgreSQL
+          database, which stores fare observations, push subscription details,
+          and hashed rate-limit records. The browser push-notification service
+          selected by your device processes the information needed to deliver
+          alerts. Those providers process information under their own terms and
+          privacy policies. We may also disclose information when required by
+          law or necessary to protect the service and its users. We do not sell
+          your personal data.
         </p>
         <p>
           Some providers may process information outside Kenya. Where that
@@ -136,8 +143,8 @@
         </ul>
         <p>
           Fare observations are used to produce historical route comparisons.
-          They are not intended to identify individual users and may be kept
-          separately from any support correspondence.
+          They are not intended to identify individual users. Our collector
+          deletes observations older than 180 days.
         </p>
 
         <h2>7. Your data-protection rights</h2>

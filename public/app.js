@@ -72,12 +72,6 @@ function decodeKey(value) {
 async function enableAlerts() {
   const button = document.querySelector("#enable-alerts");
   try {
-<<<<<<< HEAD:public/app.js
-    const response = await fetch("/api/vapid-public-key");
-    if (!response.ok) throw new Error("Push alerts are not configured on this server.");
-    const key = await response.text();
-=======
->>>>>>> a578bee (Added privacy Policy and branding):web/app.js
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       throw new Error("Push alerts are not supported in this browser.");
     }
@@ -95,7 +89,7 @@ async function enableAlerts() {
       return;
     }
 
-    const response = await fetch("/vapid-public-key");
+    const response = await fetch("/api/vapid-public-key");
     if (!response.ok) throw new Error("Push alerts are not configured on this server.");
     const key = await response.text();
     const subscription = await registration.pushManager.subscribe({
