@@ -1,0 +1,7 @@
+/target
+/flights.db
+/flights.db-shm
+/flights.db-wal
+/.env
+/vapid_private.pem
+/vapid_public.pem
