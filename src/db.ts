@@ -32,31 +32,60 @@ export async function insertFares(fares: FareInput[], source: string): Promise<F
   if (fares.length === 0) return [];
   const parameters: unknown[] = [];
   const values = fares.map((fare, index) => {
-    const offset = index * 6;
+    const offset = index * 7;
     parameters.push(
       fare.origin,
       fare.destination,
       fare.carrier,
       fare.departure,
       fare.price_kes,
+      fare.booking_url,
       source,
     );
-    return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6})`;
+    return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7})`;
   });
   const rows = await sql.query(
-    `INSERT INTO fares (origin, destination, carrier, departure, price_kes, source)
+    `INSERT INTO fares (origin, destination, carrier, departure, price_kes, booking_url, source)
      VALUES ${values.join(",")}
      ON CONFLICT (origin, destination, carrier, departure, price_kes) DO NOTHING
      RETURNING BTRIM(origin) AS origin, BTRIM(destination) AS destination,
-               carrier, departure, price_kes`,
+               carrier, departure, price_kes, booking_url`,
     parameters,
   );
+
+  const updateParameters: unknown[] = [];
+  const updateValues = fares.map((fare, index) => {
+    const offset = index * 6;
+    updateParameters.push(
+      fare.origin,
+      fare.destination,
+      fare.carrier,
+      fare.departure,
+      fare.price_kes,
+      fare.booking_url,
+    );
+    return `($${offset + 1}::char(3), $${offset + 2}::char(3), $${offset + 3}::text, $${offset + 4}::timestamptz, $${offset + 5}::integer, $${offset + 6}::text)`;
+  });
+  await sql.query(
+    `UPDATE fares AS saved
+     SET booking_url = incoming.booking_url
+     FROM (VALUES ${updateValues.join(",")}) AS incoming(origin, destination, carrier, departure, price_kes, booking_url)
+     WHERE saved.origin = incoming.origin
+       AND saved.destination = incoming.destination
+       AND saved.carrier = incoming.carrier
+       AND saved.departure = incoming.departure
+       AND saved.price_kes = incoming.price_kes
+       AND saved.booking_url IS DISTINCT FROM incoming.booking_url`,
+    updateParameters,
+  );
+
   return rows.map((row) => ({
     origin: String(row.origin),
     destination: String(row.destination),
     carrier: String(row.carrier),
     departure: new Date(String(row.departure)).toISOString(),
     price_kes: Number(row.price_kes),
+    booking_url: String(row.booking_url),
   }));
 }
 
@@ -66,7 +95,7 @@ export async function pruneOldFares(): Promise<void> {
 
 export async function listFares(origin: string | null, destination: string | null) {
   const rows = await sql.query(
-    `SELECT origin, destination, carrier, departure, price_kes
+    `SELECT origin, destination, carrier, departure, price_kes, booking_url
      FROM fares
      WHERE departure > NOW()
        AND observed_at >= NOW() - INTERVAL '60 days'
@@ -89,6 +118,7 @@ export async function listFares(origin: string | null, destination: string | nul
       carrier: String(row.carrier),
       departure: new Date(String(row.departure)).toISOString(),
       price_kes: Number(row.price_kes),
+      booking_url: typeof row.booking_url === "string" ? row.booking_url : null,
       median_60d_kes: median,
       below_median: median !== null && Number(row.price_kes) < median,
     };

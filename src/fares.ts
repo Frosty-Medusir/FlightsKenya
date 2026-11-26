@@ -6,6 +6,7 @@ export interface FareInput {
   carrier: string;
   departure: string;
   price_kes: number;
+  booking_url: string;
 }
 
 export interface ParsedFeed {
@@ -35,8 +36,17 @@ export function normalizeFare(value: unknown): FareInput | null {
   const destination = typeof item.destination === "string" ? item.destination.toUpperCase() : "";
   const carrier = typeof item.carrier === "string" ? item.carrier.trim() : "";
   const departure = typeof item.departure === "string" ? item.departure : "";
+  const bookingUrl = typeof item.booking_url === "string" ? item.booking_url.trim() : "";
   const price = item.price_kes;
   const parsedDate = Date.parse(departure);
+  let normalizedBookingUrl: string;
+  try {
+    const url = new URL(bookingUrl);
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+    normalizedBookingUrl = url.toString();
+  } catch {
+    return null;
+  }
 
   if (
     !isAirport(origin) ||
@@ -44,6 +54,7 @@ export function normalizeFare(value: unknown): FareInput | null {
     origin === destination ||
     !carrier ||
     carrier.length > 120 ||
+    bookingUrl.length > 2048 ||
     !Number.isFinite(parsedDate) ||
     !Number.isSafeInteger(price) ||
     (price as number) <= 0 ||
@@ -58,6 +69,7 @@ export function normalizeFare(value: unknown): FareInput | null {
     carrier,
     departure: new Date(parsedDate).toISOString(),
     price_kes: price as number,
+    booking_url: normalizedBookingUrl,
   };
 }
 

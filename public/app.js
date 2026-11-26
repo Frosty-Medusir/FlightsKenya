@@ -30,6 +30,15 @@ function escapeHtml(value) {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   })[character]);
 }
+function safeBookingUrl(value) {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 async function showFares() {
   fareList.replaceChildren();
   statusMessage.textContent = "Looking for available fares…";
@@ -42,22 +51,31 @@ async function showFares() {
     if (!response.ok) throw new Error("Fare data is temporarily unavailable.");
     const fares = await response.json();
     if (!fares.length) {
-      statusMessage.textContent = "No fares yet. Add a configured feed to start comparing this route.";
+      statusMessage.textContent = "No fares yet. Add a configured feed with booking links to compare this route.";
       document.querySelector("#median-label").textContent = "";
       return;
     }
-    statusMessage.textContent = `${fares.length} available fare${fares.length === 1 ? "" : "s"}`;
+    statusMessage.textContent = `${fares.length} fare${fares.length === 1 ? "" : "s"}, sorted from cheapest`;
     const median = fares.find((fare) => fare.median_60d_kes !== null)?.median_60d_kes;
     document.querySelector("#median-label").textContent = median
       ? `60-day median · KES ${money(median)}` : "Collecting history for route median";
-    fareList.innerHTML = fares.map((fare) => {
+    fareList.innerHTML = fares.map((fare, index) => {
       const when = new Date(fare.departure).toLocaleString("en-KE", {
         weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
       });
-      return `<article class="fare-card">
-        <span class="carrier">${escapeHtml(fare.carrier)}${fare.below_median ? '<small class="deal"> · Below median</small>' : ""}</span>
+      const tags = [
+        ...(index === 0 ? ["Cheapest"] : []),
+        ...(fare.below_median ? ["Below median"] : []),
+      ].map((tag) => `<small class="deal">${tag}</small>`).join("");
+      const bookingUrl = safeBookingUrl(fare.booking_url);
+      const bookingAction = bookingUrl
+        ? `<a class="book-link" href="${escapeHtml(bookingUrl)}" target="_blank" rel="noopener noreferrer">Book flight ↗</a>`
+        : '<span class="booking-unavailable">Booking link unavailable</span>';
+      return `<article class="fare-card${index === 0 ? " cheapest" : ""}">
+        <span class="carrier">${escapeHtml(fare.carrier)}${tags}</span>
         <span class="departure">${when}</span>
         <span class="price">KES ${money(fare.price_kes)}<small>one way</small></span>
+        ${bookingAction}
       </article>`;
     }).join("");
   } catch (error) {

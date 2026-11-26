@@ -1,0 +1,1 @@
+ALTER TABLE fares ADD COLUMN IF NOT EXISTS booking_url TEXT;

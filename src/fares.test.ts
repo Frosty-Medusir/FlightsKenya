@@ -16,6 +16,7 @@ test("fare normalization accepts supported routes and rejects malformed fares", 
       carrier: " Example Air ",
       departure: "2026-12-01T09:30:00+03:00",
       price_kes: 8500,
+      booking_url: "https://air.example/book?flight=123",
     }),
     {
       origin: "NBO",
@@ -23,6 +24,7 @@ test("fare normalization accepts supported routes and rejects malformed fares", 
       carrier: "Example Air",
       departure: "2026-12-01T06:30:00.000Z",
       price_kes: 8500,
+      booking_url: "https://air.example/book?flight=123",
     },
   );
   assert.equal(normalizeFare({ origin: "NBO", destination: "XXX" }), null);
@@ -32,6 +34,28 @@ test("fare normalization accepts supported routes and rejects malformed fares", 
       destination: "MBA",
       carrier: "Air",
       departure: "not-a-date",
+      price_kes: 100,
+      booking_url: "https://air.example/book",
+    }),
+    null,
+  );
+  assert.equal(
+    normalizeFare({
+      origin: "NBO",
+      destination: "MBA",
+      carrier: "Air",
+      departure: "2026-12-01T06:30:00Z",
+      price_kes: 100,
+      booking_url: "javascript:alert(1)",
+    }),
+    null,
+  );
+  assert.equal(
+    normalizeFare({
+      origin: "NBO",
+      destination: "MBA",
+      carrier: "Air",
+      departure: "2026-12-01T06:30:00Z",
       price_kes: 100,
     }),
     null,
@@ -47,6 +71,7 @@ test("feed parser keeps valid fares and counts rejected entries", () => {
         carrier: "Air",
         departure: "2026-12-01T06:30:00Z",
         price_kes: 9000,
+        booking_url: "https://air.example/book?flight=123",
       },
       { origin: "NBO", destination: "XXX" },
     ],

@@ -35,12 +35,16 @@ h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
 .median-label { margin: 0; color: var(--muted); font-size: 11px; }
 .status { padding: 28px 0; color: var(--muted); font-size: 13px; }
 .fare-list { display: grid; }
-.fare-card { display: grid; grid-template-columns: 1fr 1.2fr 1fr; align-items: center; gap: 20px; padding: 20px 2px; border-bottom: 1px solid var(--line); }
+.fare-card { display: grid; grid-template-columns: 1fr 1.2fr 1fr auto; align-items: center; gap: 20px; padding: 20px 12px; border-bottom: 1px solid var(--line); }
+.fare-card.cheapest { background: #edf5ef; }
 .carrier { font-size: 14px; font-weight: 600; }
 .departure { color: var(--muted); font-size: 12px; }
 .deal { color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .price { text-align: right; font-size: 17px; font-weight: 700; }
 .price small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; font-weight: 400; }
+.book-link { padding: 10px 12px; border-radius: 4px; background: var(--green); color: #fff !important; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.book-link:hover { background: #0c553e; text-decoration: none !important; }
+.booking-unavailable { color: var(--muted); font-size: 10px; white-space: nowrap; }
 footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 22px 0 28px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
 .site-footer nav { display: flex; gap: 16px; }
 .site-footer a { color: var(--green); text-decoration: none; }
@@ -64,9 +68,10 @@ footer { display: flex; justify-content: space-between; align-items: center; gap
   .search-button { grid-column: 1 / -1; justify-content: space-between; }
   .results { padding: 42px 0 52px; }
   .section-heading { align-items: start; flex-direction: column; gap: 10px; }
-  .fare-card { grid-template-columns: 1fr auto; gap: 7px 12px; }
+  .fare-card { grid-template-columns: 1fr auto; gap: 7px 12px; padding-inline: 8px; }
   .fare-card .departure { grid-column: 1; }
   .fare-card .price { grid-column: 2; grid-row: 1 / span 2; }
+  .fare-card .book-link, .fare-card .booking-unavailable { grid-column: 1 / -1; justify-self: start; }
   footer { align-items: start; flex-direction: column; }
   .site-footer nav { flex-wrap: wrap; }
 }
