@@ -72,13 +72,32 @@ function decodeKey(value) {
 async function enableAlerts() {
   const button = document.querySelector("#enable-alerts");
   try {
+<<<<<<< HEAD:public/app.js
     const response = await fetch("/api/vapid-public-key");
     if (!response.ok) throw new Error("Push alerts are not configured on this server.");
     const key = await response.text();
+=======
+>>>>>>> a578bee (Added privacy Policy and branding):web/app.js
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       throw new Error("Push alerts are not supported in this browser.");
     }
     const registration = await navigator.serviceWorker.register("/sw.js");
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+      const removed = await fetch("/api/subscriptions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: existing.endpoint }),
+      });
+      if (!removed.ok) throw new Error("Could not disable alerts on this device.");
+      await existing.unsubscribe();
+      button.textContent = "Enable alerts";
+      return;
+    }
+
+    const response = await fetch("/vapid-public-key");
+    if (!response.ok) throw new Error("Push alerts are not configured on this server.");
+    const key = await response.text();
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true, applicationServerKey: decodeKey(key.trim()),
     });
@@ -93,6 +112,15 @@ async function enableAlerts() {
     window.setTimeout(() => { button.textContent = "Enable alerts"; }, 3500);
   }
 }
+
+async function updateAlertButton() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  const registration = await navigator.serviceWorker.getRegistration();
+  const subscription = await registration?.pushManager.getSubscription();
+  if (subscription) document.querySelector("#enable-alerts").textContent = "Disable alerts";
+}
+
 document.querySelector("#search").addEventListener("click", showFares);
 document.querySelector("#enable-alerts").addEventListener("click", enableAlerts);
+updateAlertButton().catch((error) => console.error("Could not check alert subscription:", error));
 loadRoutes().then(showFares).catch((error) => { statusMessage.textContent = error.message; });

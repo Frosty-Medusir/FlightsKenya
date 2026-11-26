@@ -1,5 +1,8 @@
-const CACHE = "flight-watch-v1";
-const APP_SHELL = ["/", "/styles.css", "/app.js", "/manifest.json", "/icon.svg"];
+const CACHE = "flights-kenya-v2";
+const APP_SHELL = [
+  "/", "/styles.css", "/app.js", "/manifest.json", "/logo.png",
+  "/favicon.png", "/privacy.html",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL)));
@@ -21,7 +24,7 @@ self.addEventListener("push", (event) => {
     try { message = { ...message, ...event.data.json() }; } catch { /* use the default message */ }
   }
   event.waitUntil(self.registration.showNotification(message.title, {
-    body: message.body, icon: "/icon.svg", data: { url: message.url },
+    body: message.body, icon: "/favicon.png", data: { url: message.url },
   }));
 });
 self.addEventListener("notificationclick", (event) => {
