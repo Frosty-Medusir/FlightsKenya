@@ -9,6 +9,14 @@ const fareList = document.querySelector("#fare-list");
 const offerList = document.querySelector("#offer-list");
 const statusMessage = document.querySelector("#status");
 
+const introVideo = document.querySelector("#intro-video");
+if (
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+  navigator.connection?.saveData !== true
+) {
+  introVideo.play().catch((error) => console.info("Hero video playback unavailable:", error));
+}
+
 function currentKenyanDate() {
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit",
@@ -29,8 +37,13 @@ async function loadRoutes() {
   originSelect.addEventListener("change", () => updateDestinations(routes));
 }
 function updateDestinations(routes) {
-  destinationSelect.innerHTML = routes.filter((route) => route.origin === originSelect.value)
+  const availableRoutes = routes.filter((route) => route.origin === originSelect.value);
+  destinationSelect.innerHTML = availableRoutes
     .map((route) => option(route.destination)).join("");
+  const preferredDestination = ["NBO", "WIL"].includes(originSelect.value) ? "MBA" : "NBO";
+  destinationSelect.value = availableRoutes.some((route) => route.destination === preferredDestination)
+    ? preferredDestination
+    : availableRoutes[0]?.destination || "";
 }
 function money(amount) {
   return new Intl.NumberFormat("en-KE", { maximumFractionDigits: 0 }).format(amount);
