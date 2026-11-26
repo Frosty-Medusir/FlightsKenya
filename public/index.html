@@ -3,25 +3,31 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#102c28">
-    <meta name="description" content="Compare Kenyan domestic flight fares and get local deal alerts.">
+    <meta name="theme-color" content="#fbfcf8">
+    <meta name="description" content="Compare Kenyan domestic flight fares and find affordable flights.">
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
     <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="/styles.css">
+<<<<<<< HEAD:public/index.html
     <title>Flights Kenya</title>
+=======
+    <title>Flights Kenya — Affordable flights for every Kenyan</title>
+>>>>>>> a578bee (Added privacy Policy and branding):web/index.html
   </head>
   <body>
     <main class="shell">
       <header class="topbar">
-        <a class="brand" href="/" aria-label="Kenya Flight Watch home">
-          <span class="brand-mark">K</span>
-          <span>FLIGHT WATCH <small>KENYA</small></span>
+        <a class="brand" href="/" aria-label="Flights Kenya home">
+          <img class="brand-logo" src="/logo.png" alt="">
+          <span>FLIGHTS KENYA<small>Affordable flights for every Kenyan</small></span>
         </a>
         <button id="enable-alerts" class="outline-button" type="button">Enable alerts</button>
       </header>
       <section class="intro">
         <p class="eyebrow">DOMESTIC FARES · ALL IN ONE PLACE</p>
-        <h1>Find your next<br><em>good fare.</em></h1>
-        <p class="lede">Compare flights from JKIA and Wilson. No booking fees, no noisy alerts.</p>
+        <h1>Affordable flights<br><em>for every Kenyan.</em></h1>
+        <p class="lede">Compare fares from JKIA and Wilson, and find a better way to travel around Kenya.</p>
       </section>
       <section class="search-panel" aria-label="Choose a route">
         <label>FROM<select id="origin"></select></label>
@@ -37,7 +43,14 @@
         <div id="status" class="status" role="status">Loading routes…</div>
         <div id="fare-list" class="fare-list"></div>
       </section>
-      <footer><span>Built for better trips around Kenya.</span><span>Prices in KES · Data from configured feeds</span></footer>
+      <footer class="site-footer">
+        <span>© 2026 Kodovozlabs. All rights reserved.</span>
+        <span>Prices in KES · Data from configured feeds</span>
+        <nav aria-label="Footer">
+          <a href="/privacy.html">Privacy policy</a>
+          <a href="mailto:info@kodovozlabs.co.ke">Support</a>
+        </nav>
+      </footer>
     </main>
     <script src="/app.js" defer></script>
   </body>
