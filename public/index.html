@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#fbfcf8">
+    <meta name="theme-color" content="#c8102e">
     <meta name="description" content="Compare Kenyan domestic flight fares and find affordable flights.">
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
     <link rel="apple-touch-icon" href="/favicon.png">
@@ -18,19 +18,31 @@
           <img class="brand-logo" src="/logo.png" alt="">
           <span>FLIGHTS KENYA<small>Affordable flights for every Kenyan</small></span>
         </a>
-        <button id="enable-alerts" class="outline-button" type="button">Enable alerts</button>
+        <button id="enable-alerts" class="outline-button" type="button">Price alerts</button>
       </header>
       <section class="intro">
-        <p class="eyebrow">DOMESTIC FARES · ALL IN ONE PLACE</p>
-        <h1>Affordable flights<br><em>for every Kenyan.</em></h1>
-        <p class="lede">Compare fares from JKIA and Wilson, and find a better way to travel around Kenya.</p>
+        <video id="intro-video" class="intro-video" muted loop playsinline preload="none" aria-hidden="true">
+          <source src="/media/flight-beach.mp4" type="video/mp4">
+        </video>
+        <div class="intro-copy">
+          <p class="eyebrow">EXPLORE KENYA</p>
+          <h1>Find your next<br><em>Kenyan getaway.</em></h1>
+          <p class="lede">Compare domestic fares, choose your travel date, and book directly with the airline.</p>
+        </div>
+        <div class="intro-mark" aria-hidden="true">01 <span>DOMESTIC FLIGHTS</span></div>
       </section>
       <section class="search-panel" aria-label="Choose a route">
-        <label>FROM<select id="origin"></select></label>
-        <span class="route-arrow" aria-hidden="true">→</span>
-        <label>TO<select id="destination"></select></label>
-        <label>DEPARTURE DATE (OPTIONAL)<input id="departure-date" type="date"></label>
-        <button id="search" class="search-button" type="button">Show fares <span aria-hidden="true">↗</span></button>
+        <div class="search-heading">
+          <div><p class="eyebrow">FLIGHT SEARCH</p><h2>Where would you like to go?</h2></div>
+          <span>COMPARE · CHOOSE · BOOK</span>
+        </div>
+        <div class="search-fields">
+          <label>FROM<select id="origin"></select></label>
+          <span class="route-arrow" aria-hidden="true">→</span>
+          <label>TO<select id="destination"></select></label>
+          <label>DEPARTURE DATE (OPTIONAL)<input id="departure-date" type="date"></label>
+          <button id="search" class="search-button" type="button">Search fares <span aria-hidden="true">→</span></button>
+        </div>
       </section>
       <section class="results">
         <div class="section-heading">

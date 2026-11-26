@@ -25,6 +25,9 @@ Wilson airports. The project is operated by Kodovozlabs.
   when it is listed by the airline; Flights Kenya does not invent discount
   percentages.
 - Browser push alerts are optional and require user consent.
+- The homepage uses Pixabay's "Airplane, flying, holiday" stock video by
+  Matthias_Groeneveld under the
+  [Pixabay Content License](https://pixabay.com/service/license-summary/).
 
 ## Fare feeds
 
@@ -47,13 +50,14 @@ Optionally add authorized HTTPS JSON feed URLs to the GitHub Actions
 }
 ```
 
-The example URL is a placeholder, not a real booking page. Supported routes
-are NBO/WIL to MBA, UKA, MYD, KIS, and EDL. No airline sources are
-preconfigured. The collector reads JSON endpoints; it does not bypass login,
-CAPTCHA, or anti-bot controls. Provider-specific HTML scraping requires an
-approved source and a site-specific adapter. The collector can only process
-the dates supplied by each configured feed; it filters out fares whose
-departure time has passed and does not impose a maximum advance-booking date.
+The example URL is a placeholder, not a real booking page. Available
+locations are NBO, WIL, MBA, UKA, MYD, KIS, and EDL; fares appear only for
+routes included in configured feeds. No airline sources are preconfigured.
+The collector reads JSON endpoints; it does not bypass login, CAPTCHA, or
+anti-bot controls. Provider-specific HTML scraping requires an approved
+source and a site-specific adapter. The collector can only process the dates
+supplied by each configured feed; it filters out fares whose departure time
+has passed and does not impose a maximum advance-booking date.
 
 ## Deploy to Vercel
 

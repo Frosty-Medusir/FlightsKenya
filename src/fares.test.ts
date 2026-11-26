@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { AIRPORTS, ROUTES } from "./airports.ts";
 import { isValidDepartureDate, median, normalizeFare, parseFeed } from "./fares.ts";
+
+test("every available airport can be selected as an origin and destination", () => {
+  assert.deepEqual([...new Set(ROUTES.map((route) => route.origin))], AIRPORTS);
+  assert.equal(ROUTES.length, AIRPORTS.length * (AIRPORTS.length - 1));
+  assert.equal(ROUTES.some(({ origin, destination }) => origin === destination), false);
+});
 
 test("departure dates require a valid YYYY-MM-DD calendar date", () => {
   assert.equal(isValidDepartureDate("2028-02-29"), true);

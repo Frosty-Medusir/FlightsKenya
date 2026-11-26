@@ -1,8 +1,8 @@
 export const AIRPORTS = ["NBO", "WIL", "MBA", "UKA", "MYD", "KIS", "EDL"] as const;
 export type Airport = (typeof AIRPORTS)[number];
 
-export const ROUTES = (["NBO", "WIL"] as const).flatMap((origin) =>
-  (["MBA", "UKA", "MYD", "KIS", "EDL"] as const).map((destination) => ({
+export const ROUTES = AIRPORTS.flatMap((origin) =>
+  AIRPORTS.filter((destination) => destination !== origin).map((destination) => ({
     origin,
     destination,
   })),
