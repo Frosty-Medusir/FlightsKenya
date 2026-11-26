@@ -29,6 +29,14 @@ select { width: 100%; padding: 0 0 2px; border: 0; outline: 0; background: trans
 .search-button { display: flex; gap: 22px; align-items: center; padding: 14px 18px; border: 0; border-radius: 4px; background: var(--green); color: #fff; cursor: pointer; font-size: 12px; font-weight: 600; }
 .search-button:hover { background: #0c553e; }
 .results { padding: 56px 0 70px; }
+.public-offers { margin-top: 40px; }
+.public-offers .section-heading { padding-bottom: 14px; }
+.offer-disclaimer { margin: 14px 0 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.offer-list { display: grid; }
+.empty-offers { padding: 18px 0; color: var(--muted); font-size: 12px; }
+.offer-card { background: #fffaf0; }
+.offer-actions { display: flex; align-items: center; gap: 12px; }
+.offer-source { color: var(--green); font-size: 10px; white-space: nowrap; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .section-heading .eyebrow { margin-bottom: 7px; }
 h2 { margin: 0; font-size: 22px; letter-spacing: -.03em; }
@@ -72,6 +80,7 @@ footer { display: flex; justify-content: space-between; align-items: center; gap
   .fare-card .departure { grid-column: 1; }
   .fare-card .price { grid-column: 2; grid-row: 1 / span 2; }
   .fare-card .book-link, .fare-card .booking-unavailable { grid-column: 1 / -1; justify-self: start; }
+  .offer-card .offer-actions { grid-column: 1 / -1; flex-wrap: wrap; }
   footer { align-items: start; flex-direction: column; }
   .site-footer nav { flex-wrap: wrap; }
 }

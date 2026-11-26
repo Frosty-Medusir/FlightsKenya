@@ -5,6 +5,7 @@ const airportNames = {
 const originSelect = document.querySelector("#origin");
 const destinationSelect = document.querySelector("#destination");
 const fareList = document.querySelector("#fare-list");
+const offerList = document.querySelector("#offer-list");
 const statusMessage = document.querySelector("#status");
 
 function option(code) {
@@ -47,15 +48,19 @@ async function showFares() {
   document.querySelector("#route-title").textContent = `${origin} → ${destination}`;
   const params = new URLSearchParams({ origin, destination });
   try {
-    const response = await fetch(`/api/fares?${params}`);
-    if (!response.ok) throw new Error("Fare data is temporarily unavailable.");
-    const fares = await response.json();
-    if (!fares.length) {
-      statusMessage.textContent = "No fares yet. Add a configured feed with booking links to compare this route.";
-      document.querySelector("#median-label").textContent = "";
-      return;
+    const [fareResponse, offerResponse] = await Promise.all([
+      fetch(`/api/fares?${params}`),
+      fetch(`/api/offers?${params}`),
+    ]);
+    if (!fareResponse.ok || !offerResponse.ok) {
+      throw new Error("Fare data is temporarily unavailable.");
     }
-    statusMessage.textContent = `${fares.length} fare${fares.length === 1 ? "" : "s"}, sorted from cheapest`;
+    const [fares, offers] = await Promise.all([fareResponse.json(), offerResponse.json()]);
+    statusMessage.textContent = fares.length
+      ? `${fares.length} date-specific fare${fares.length === 1 ? "" : "s"}, sorted from cheapest`
+      : offers.length
+        ? "No date-specific fares are available. Check the indicative public offers below."
+        : "No current fares or public offers were found for this route.";
     const median = fares.find((fare) => fare.median_60d_kes !== null)?.median_60d_kes;
     document.querySelector("#median-label").textContent = median
       ? `60-day median · KES ${money(median)}` : "Collecting history for route median";
@@ -78,6 +83,22 @@ async function showFares() {
         ${bookingAction}
       </article>`;
     }).join("");
+    offerList.innerHTML = offers.length ? offers.map((offer) => {
+      const bookingUrl = safeBookingUrl(offer.booking_url);
+      const sourceUrl = safeBookingUrl(offer.source_url);
+      const bookingAction = bookingUrl
+        ? `<a class="book-link" href="${escapeHtml(bookingUrl)}" target="_blank" rel="noopener noreferrer">Check availability ↗</a>`
+        : '<span class="booking-unavailable">Booking link unavailable</span>';
+      const sourceAction = sourceUrl
+        ? `<a class="offer-source" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Offer source</a>`
+        : "";
+      return `<article class="fare-card offer-card">
+        <span class="carrier">${escapeHtml(offer.carrier)}<small class="deal"> · ${escapeHtml(offer.offer_title)}</small></span>
+        <span class="departure">${escapeHtml(offer.origin_label)} → ${airportNames[offer.destination] || escapeHtml(offer.destination)} · no travel date specified</span>
+        <span class="price">From KES ${money(offer.price_kes)}<small>published starting price</small></span>
+        <span class="offer-actions">${bookingAction}${sourceAction}</span>
+      </article>`;
+    }).join("") : '<p class="empty-offers">No recent public offers are listed for this route.</p>';
   } catch (error) {
     statusMessage.textContent = error.message;
   }

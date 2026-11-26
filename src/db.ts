@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import type { FareInput } from "./fares.ts";
+import type { PublicOffer } from "./offers.ts";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error("DATABASE_URL is not configured.");
@@ -91,6 +92,64 @@ export async function insertFares(fares: FareInput[], source: string): Promise<F
 
 export async function pruneOldFares(): Promise<void> {
   await sql.query("DELETE FROM fares WHERE observed_at < NOW() - INTERVAL '180 days'");
+  await sql.query("DELETE FROM public_offers WHERE observed_at < NOW() - INTERVAL '180 days'");
+}
+
+export async function savePublicOffers(offers: PublicOffer[]): Promise<number> {
+  if (offers.length === 0) return 0;
+  const parameters: unknown[] = [];
+  const values = offers.map((offer, index) => {
+    const offset = index * 8;
+    parameters.push(
+      offer.origin_code,
+      offer.origin_label,
+      offer.destination,
+      offer.carrier,
+      offer.price_kes,
+      offer.offer_title,
+      offer.booking_url,
+      offer.source_url,
+    );
+    return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8})`;
+  });
+  const rows = await sql.query(
+    `INSERT INTO public_offers
+       (origin_code, origin_label, destination, carrier, price_kes, offer_title, booking_url, source_url)
+     VALUES ${values.join(",")}
+     ON CONFLICT (source_url, origin_label, destination, price_kes, offer_title)
+     DO UPDATE SET
+       origin_code = EXCLUDED.origin_code,
+       carrier = EXCLUDED.carrier,
+       booking_url = EXCLUDED.booking_url,
+       observed_at = NOW()
+     RETURNING id`,
+    parameters,
+  );
+  return rows.length;
+}
+
+export async function listPublicOffers(origin: string, destination: string) {
+  const rows = await sql.query(
+    `SELECT origin_code, BTRIM(destination) AS destination, origin_label,
+            carrier, price_kes, offer_title, booking_url, source_url, observed_at
+     FROM public_offers
+     WHERE observed_at >= NOW() - INTERVAL '24 hours'
+       AND (origin_code IS NULL OR origin_code = $1)
+       AND destination = $2
+     ORDER BY price_kes, origin_code NULLS LAST`,
+    [origin, destination],
+  );
+  return rows.map((row) => ({
+    origin_code: row.origin_code === null ? null : String(row.origin_code).trim(),
+    origin_label: String(row.origin_label),
+    destination: String(row.destination).trim(),
+    carrier: String(row.carrier),
+    price_kes: Number(row.price_kes),
+    offer_title: String(row.offer_title),
+    booking_url: String(row.booking_url),
+    source_url: String(row.source_url),
+    observed_at: new Date(String(row.observed_at)).toISOString(),
+  }));
 }
 
 export async function listFares(origin: string | null, destination: string | null) {

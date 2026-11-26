@@ -12,16 +12,23 @@ Wilson airports. The project is operated by Kodovozlabs.
   Postgres.
 - A Python ETL job runs from GitHub Actions every six hours. It fetches
   configured JSON feeds, validates and normalizes fares, then securely sends
-  batches to the API.
+  batches to the API. It also reads publicly listed offers from Skyward
+  Airlines' special-offers page and displays them separately from
+  date-specific fares.
 - Fare comparisons are sorted by price, with the cheapest result highlighted.
   Each bookable fare includes a direct provider link from its feed.
+- Public airline starting prices are indicative, not date-specific quotes.
+  They are labeled separately, link to the original offer and booking page,
+  and require confirmation with the airline. A promotion is only displayed
+  when it is listed by the airline; Flights Kenya does not invent discount
+  percentages.
 - Browser push alerts are optional and require user consent.
 
 ## Fare feeds
 
-Add authorized, HTTPS JSON feed URLs to the GitHub Actions `FEED_URLS` secret
-as a comma-separated list. Each endpoint must return a `fares` array with a
-valid HTTPS `booking_url` for every fare:
+Optionally add authorized HTTPS JSON feed URLs to the GitHub Actions
+`FEED_URLS` secret as a comma-separated list. Each endpoint must return a
+`fares` array with a valid HTTPS `booking_url` for every date-specific fare:
 
 ```json
 {
@@ -86,7 +93,7 @@ approved source and a site-specific adapter.
    | --- | --- |
    | `VERCEL_APP_URL` | Deployed site origin, without a trailing slash |
    | `COLLECTOR_SECRET` | Same value configured in Vercel |
-   | `FEED_URLS` | Comma-separated authorized HTTPS JSON feed URLs |
+   | `FEED_URLS` | Optional comma-separated authorized HTTPS JSON feed URLs |
 
    The workflow at `.github/workflows/collect.yml` runs every six hours and
    can also be started manually. GitHub Actions schedules are best-effort and
@@ -109,11 +116,12 @@ npx vercel dev
 Pull local environment variables with `npx vercel env pull .env.local`. Run
 `npm run db:migrate` after setting up the database.
 
-The Python collector uses only the Python standard library (Python 3.12+).
-Run it manually with `VERCEL_APP_URL`, `COLLECTOR_SECRET`, and `FEED_URLS`
-set in the environment:
+The Python collector requires Python 3.12+ and `certifi` for verified HTTPS.
+Install its dependency and run it manually with `VERCEL_APP_URL`,
+`COLLECTOR_SECRET`, and optional `FEED_URLS` set in the environment:
 
 ```sh
+python3 -m pip install -r requirements.txt
 python3 scripts/collect.py
 ```
 
@@ -122,10 +130,13 @@ python3 scripts/collect.py
 - `GET /api/health`
 - `GET /api/routes`
 - `GET /api/fares?origin=NBO&destination=MBA` (sorted cheapest first)
+- `GET /api/offers?origin=NBO&destination=MBA` (recent public offers; Nairobi
+  offers without a specified airport can appear for NBO and WIL)
 - `GET /api/vapid-public-key`
 - `POST /api/subscriptions`
 - `DELETE /api/subscriptions`
 - `POST /api/collect` (authenticated Python fare-batch ingestion)
+- `POST /api/offers` (authenticated public-offer ingestion)
 
 ## Privacy and support
 

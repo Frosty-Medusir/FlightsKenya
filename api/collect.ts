@@ -1,6 +1,6 @@
-import { timingSafeEqual } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "../src/vercel.ts";
 import { pruneOldFares } from "../src/db.ts";
+import { isCollectorAuthorized } from "../src/collector-auth.ts";
 import { parseFeed } from "../src/fares.ts";
 import type { ParsedFeed } from "../src/fares.ts";
 import { ingestParsedFeed } from "../src/ingest.ts";
@@ -16,16 +16,15 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
   const secret = process.env.COLLECTOR_SECRET;
   if (!secret) return response.status(503).json({ error: "Collector is not configured." });
-  const authorization = request.headers.authorization ?? "";
-  const supplied = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  const expectedBuffer = Buffer.from(secret);
-  const suppliedBuffer = Buffer.from(supplied);
-  const valid =
-    suppliedBuffer.length === expectedBuffer.length && timingSafeEqual(suppliedBuffer, expectedBuffer);
-  if (!valid) return response.status(401).json({ error: "Unauthorized." });
+  if (!isCollectorAuthorized(request.headers.authorization, secret)) {
+    return response.status(401).json({ error: "Unauthorized." });
+  }
 
   const body = request.body;
-  if (!isRecord(body) || !("source" in body) || !("fares" in body)) {
+  if (!isRecord(body)) {
+    return response.status(400).json({ error: "Expected an ingestion payload." });
+  }
+  if (!("source" in body) || !("fares" in body)) {
     return response.status(400).json({ error: "Expected a source and fares array." });
   }
   const source = body.source;
