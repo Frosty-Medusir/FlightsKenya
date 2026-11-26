@@ -1,7 +1,6 @@
-/target
-/flights.db
-/flights.db-shm
-/flights.db-wal
+/node_modules
+/.vercel
+/dist
 /.env
-/vapid_private.pem
-/vapid_public.pem
+/.env.local
+/.env.*.local

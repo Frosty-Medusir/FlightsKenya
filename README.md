@@ -1,17 +1,14 @@
-<<<<<<< HEAD
-# FlightsKenya 
-### Making Local flights affordable for Kenyans.
-=======
 # Kenya Flight Watch
 
-A local-first fare tracker for Kenyan domestic routes. The Rust service stores
-fares and Web Push subscriptions in SQLite; the installable PWA shows route
-comparisons and deal alerts.
+A Vercel-hosted fare tracker for Kenyan domestic routes. The static PWA is
+served from `public/`; TypeScript Vercel Functions provide the API; Neon
+Postgres stores fares and push subscriptions.
 
-## Data sources
+## Fare feeds
 
-No carrier endpoints are guessed or bundled. Configure feed URLs you are
-authorized to use with `FEED_URLS`. Each URL must return this JSON shape:
+No airline endpoints are assumed. Add feed URLs you are authorized to use to
+the Vercel `FEED_URLS` environment variable (comma-separated). Each endpoint
+must return:
 
 ```json
 {
@@ -27,53 +24,75 @@ authorized to use with `FEED_URLS`. Each URL must return this JSON shape:
 }
 ```
 
-Feed items are validated and deduplicated. Comparisons use a rolling 60-day
-median for the route. A fare below that median can trigger a push notification.
+Items are validated and deduplicated. Route medians use fares recorded in the
+last 60 days. Newly collected fares below the route median can trigger Web
+Push notifications.
 
-## Run locally
+## Deploy
 
-Install stable Rust, then run:
+1. Import this repository into Vercel. The frontend is served from `public/`;
+   API handlers are in `api/`.
+2. Create a Neon Postgres database and add its connection string as
+   `DATABASE_URL` in Vercel.
+3. Configure these Vercel environment variables:
+
+   | Variable | Description |
+   | --- | --- |
+   | `DATABASE_URL` | Neon Postgres connection string |
+   | `FEED_URLS` | Comma-separated authorized JSON fare feed URLs |
+   | `COLLECTOR_SECRET` | Random secret used by the scheduled collector |
+   | `VAPID_PUBLIC_KEY` | Base64url VAPID public key |
+   | `VAPID_PRIVATE_KEY` | Base64url VAPID private key |
+   | `VAPID_SUBJECT` | Contact URL, e.g. `mailto:you@example.com` |
+
+   Generate `COLLECTOR_SECRET` with `openssl rand -hex 32`. Generate the VAPID
+   keys as described below.
+4. On your computer, run `npm install`, link the project with `npx vercel link`,
+   pull the Vercel environment with `npx vercel env pull .env.local`, then run
+   `npm run db:migrate` to create the database tables.
+5. Add repository secrets `VERCEL_APP_URL` (the deployed origin, without a
+   trailing slash) and `COLLECTOR_SECRET` in GitHub **Settings → Secrets and
+   variables → Actions**. The workflow at `.github/workflows/collect.yml`
+   calls the collector every six hours and can also be started manually.
+6. Redeploy from Vercel after configuring the environment variables and
+   applying the database migration.
+
+The GitHub Actions schedule is best-effort and may be delayed. Vercel Hobby
+Cron is once per day, so the repository workflow is used for the requested
+six-hour cadence.
+
+Generate VAPID keys with the `web-push` CLI and set both printed values in
+Vercel's environment settings:
 
 ```sh
-cargo run
+npx web-push generate-vapid-keys
 ```
 
-By default, the server listens on `127.0.0.1:8080`, creates `flights.db`, and
-serves both the API and PWA at <http://127.0.0.1:8080>. `FEED_URLS` accepts
-comma-separated JSON feed URLs; collection runs on startup and every six
-hours by default.
+Keep the private key in Vercel environment variables only. Push requires
+HTTPS, which Vercel provides on deployed domains.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | `sqlite://flights.db?mode=rwc` | SQLite database location |
-| `BIND_ADDR` | `127.0.0.1:8080` | HTTP listen address |
-| `FEED_URLS` | empty | Comma-separated JSON feed endpoints |
-| `COLLECT_INTERVAL_HOURS` | `6` | Collector interval |
-| `VAPID_PUBLIC_KEY` | unset | Public VAPID key used by the PWA |
-| `VAPID_PRIVATE_KEY_FILE` | unset | Path to PEM VAPID private key |
-| `VAPID_SUBJECT` | `mailto:admin@example.com` | Contact subject in VAPID claims |
-
-Generate a VAPID key pair with OpenSSL:
+## Local development
 
 ```sh
-openssl ecparam -name prime256v1 -genkey -noout -out vapid_private.pem
-openssl ec -in vapid_private.pem -pubout -out vapid_public.pem
-openssl ec -in vapid_private.pem -pubout -outform DER | tail -c 65 | base64 | tr '/+' '_-' | tr -d '='
+npm install
+npx vercel dev
 ```
 
-Set `VAPID_PUBLIC_KEY` to the final command's output and
-`VAPID_PRIVATE_KEY_FILE` to the private PEM path. Never commit the private
-key. Web Push requires HTTPS in production; localhost is permitted for
-development.
+Pull the environment variables locally with `npx vercel env pull .env.local`.
+The route list covers NBO/WIL to MBA, UKA, MYD, KIS, and EDL.
 
-The route list covers NBO/WIL to MBA, UKA, MYD, KIS, and EDL. API routes:
+## API
 
-- `GET /api/fares?origin=NBO&destination=MBA` — fare comparisons and median.
-- `GET /api/routes` — supported route pairs.
-- `POST /api/subscriptions` and `DELETE /api/subscriptions` — manage push.
-- `GET /api/health` — service status.
+- `GET /api/health`
+- `GET /api/routes`
+- `GET /api/fares?origin=NBO&destination=MBA`
+- `GET /api/vapid-public-key`
+- `POST /api/subscriptions`
+- `DELETE /api/subscriptions`
+- `POST /api/collect` (requires `Authorization: Bearer $COLLECTOR_SECRET`)
 
-The server binds to loopback by default. Before public deployment, add
-authentication and rate limiting and serve it only over HTTPS. The backend,
-database, and push sender must remain reachable by the PWA.
->>>>>>> 759c4fe (First commit)
+GitHub Actions scheduled jobs are not exact timers. If collection must run
+reliably every 4–6 hours, use a paid scheduler or always-on worker. Database
+and Vercel free-tier quotas/terms can change; check them before relying on
+continuous public service. Configure rate limits and access controls before
+opening subscription endpoints to substantial public traffic.

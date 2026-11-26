@@ -1,0 +1,70 @@
+import { isAirport } from "./airports.ts";
+
+export interface FareInput {
+  origin: string;
+  destination: string;
+  carrier: string;
+  departure: string;
+  price_kes: number;
+}
+
+export interface ParsedFeed {
+  fares: FareInput[];
+  rejected: number;
+}
+
+export function parseFeed(value: unknown): ParsedFeed {
+  if (!value || typeof value !== "object" || !("fares" in value) || !Array.isArray(value.fares)) {
+    throw new Error("Feed JSON must contain a fares array.");
+  }
+
+  const fares: FareInput[] = [];
+  let rejected = 0;
+  for (const item of value.fares) {
+    const fare = normalizeFare(item);
+    if (fare) fares.push(fare);
+    else rejected += 1;
+  }
+  return { fares, rejected };
+}
+
+export function normalizeFare(value: unknown): FareInput | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Record<string, unknown>;
+  const origin = typeof item.origin === "string" ? item.origin.toUpperCase() : "";
+  const destination = typeof item.destination === "string" ? item.destination.toUpperCase() : "";
+  const carrier = typeof item.carrier === "string" ? item.carrier.trim() : "";
+  const departure = typeof item.departure === "string" ? item.departure : "";
+  const price = item.price_kes;
+  const parsedDate = Date.parse(departure);
+
+  if (
+    !isAirport(origin) ||
+    !isAirport(destination) ||
+    origin === destination ||
+    !carrier ||
+    carrier.length > 120 ||
+    !Number.isFinite(parsedDate) ||
+    !Number.isSafeInteger(price) ||
+    (price as number) <= 0 ||
+    (price as number) > 2_000_000
+  ) {
+    return null;
+  }
+
+  return {
+    origin,
+    destination,
+    carrier,
+    departure: new Date(parsedDate).toISOString(),
+    price_kes: price as number,
+  };
+}
+
+export function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[middle];
+  return sorted[middle - 1] + Math.floor((sorted[middle] - sorted[middle - 1]) / 2);
+}
