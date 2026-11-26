@@ -121,7 +121,7 @@ Install its dependency and run it manually with `VERCEL_APP_URL`,
 `COLLECTOR_SECRET`, and optional `FEED_URLS` set in the environment:
 
 ```sh
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r scripts/requirements.txt
 python3 scripts/collect.py
 ```
 
