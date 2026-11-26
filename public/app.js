@@ -72,7 +72,7 @@ function decodeKey(value) {
 async function enableAlerts() {
   const button = document.querySelector("#enable-alerts");
   try {
-    const response = await fetch("/vapid-public-key");
+    const response = await fetch("/api/vapid-public-key");
     if (!response.ok) throw new Error("Push alerts are not configured on this server.");
     const key = await response.text();
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
