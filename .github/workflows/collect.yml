@@ -12,13 +12,13 @@ jobs:
   collect:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Vercel collector
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Python fare ETL
         env:
           VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
           COLLECTOR_SECRET: ${{ secrets.COLLECTOR_SECRET }}
-        run: |
-          test -n "$VERCEL_APP_URL"
-          test -n "$COLLECTOR_SECRET"
-          curl --fail-with-body --retry 3 --retry-delay 10 \
-            -X POST "$VERCEL_APP_URL/api/collect" \
-            -H "Authorization: Bearer $COLLECTOR_SECRET"
+          FEED_URLS: ${{ secrets.FEED_URLS }}
+        run: python scripts/collect.py

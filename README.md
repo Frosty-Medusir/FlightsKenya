@@ -8,18 +8,20 @@ Wilson airports. The project is operated by Kodovozlabs.
 ## How it works
 
 - The static PWA is served from `public/`.
-- TypeScript Vercel Functions provide the API and collector.
-- Neon Postgres stores fare observations and opted-in push subscriptions.
-- GitHub Actions triggers fare collection every six hours.
-
-Fare observations are validated and deduplicated. Route comparisons use a
-rolling 60-day median. Browser push alerts are optional and require user
-consent.
+- TypeScript Vercel Functions serve the API and write fare batches to Neon
+  Postgres.
+- A Python ETL job runs from GitHub Actions every six hours. It fetches
+  configured JSON feeds, validates and normalizes fares, then securely sends
+  batches to the API.
+- Fare comparisons are sorted by price, with the cheapest result highlighted.
+  Each bookable fare includes a direct provider link from its feed.
+- Browser push alerts are optional and require user consent.
 
 ## Fare feeds
 
-Add authorized JSON feed URLs to the Vercel `FEED_URLS` environment variable
-as a comma-separated list. Each endpoint must return a `fares` array:
+Add authorized, HTTPS JSON feed URLs to the GitHub Actions `FEED_URLS` secret
+as a comma-separated list. Each endpoint must return a `fares` array with a
+valid HTTPS `booking_url` for every fare:
 
 ```json
 {
@@ -29,27 +31,31 @@ as a comma-separated list. Each endpoint must return a `fares` array:
       "destination": "MBA",
       "carrier": "Example Air",
       "departure": "2026-12-01T09:30:00+03:00",
-      "price_kes": 8500
+      "price_kes": 8500,
+      "booking_url": "https://airline.example/book?flight=123"
     }
   ]
 }
 ```
 
-Supported routes are NBO/WIL to MBA, UKA, MYD, KIS, and EDL. Configure only
-feed endpoints you are authorized to access.
+The example URL is a placeholder, not a real booking page. Supported routes
+are NBO/WIL to MBA, UKA, MYD, KIS, and EDL. No airline sources are
+preconfigured. The collector reads JSON endpoints; it does not bypass login,
+CAPTCHA, or anti-bot controls. Provider-specific HTML scraping requires an
+approved source and a site-specific adapter.
 
 ## Deploy to Vercel
 
-1. Import this repository into Vercel. The frontend is served from `public/`;
-   API handlers are in `api/`.
-2. Create a Neon Postgres database.
+1. Create a Neon Postgres database and copy its connection string.
+2. Import this repository into Vercel. Use the repository root and `main` as
+   the production branch. Static files are in `public/`; API handlers are in
+   `api/`.
 3. Configure these Vercel environment variables:
 
    | Variable | Description |
    | --- | --- |
    | `DATABASE_URL` | Neon Postgres connection string |
-   | `FEED_URLS` | Comma-separated authorized JSON fare feed URLs |
-   | `COLLECTOR_SECRET` | Long random secret for the scheduled collector |
+   | `COLLECTOR_SECRET` | Long random secret for authenticated fare ingestion |
    | `VAPID_PUBLIC_KEY` | Base64url Web Push public key |
    | `VAPID_PRIVATE_KEY` | Base64url Web Push private key |
    | `VAPID_SUBJECT` | Contact URL, e.g. `mailto:info@kodovozlabs.co.ke` |
@@ -62,10 +68,12 @@ feed endpoints you are authorized to access.
    ```
 
    Keep the VAPID private key and collector secret out of source control.
-4. On your computer, install dependencies and link the Vercel project:
+4. Install dependencies, link the project, pull local environment variables,
+   and apply every SQL migration:
 
    ```sh
-   npm install
+   npm ci
+   npx vercel login
    npx vercel link
    npx vercel env pull .env.local
    npm run db:migrate
@@ -77,14 +85,14 @@ feed endpoints you are authorized to access.
    | Secret | Value |
    | --- | --- |
    | `VERCEL_APP_URL` | Deployed site origin, without a trailing slash |
-   | `COLLECTOR_SECRET` | The same value configured in Vercel |
+   | `COLLECTOR_SECRET` | Same value configured in Vercel |
+   | `FEED_URLS` | Comma-separated authorized HTTPS JSON feed URLs |
 
    The workflow at `.github/workflows/collect.yml` runs every six hours and
    can also be started manually. GitHub Actions schedules are best-effort and
    may be delayed.
-6. Redeploy after configuring environment variables and applying the
-   migration. Web Push requires HTTPS; Vercel provides it on deployed
-   domains.
+6. Deploy from Vercel. Web Push requires HTTPS, which Vercel provides on
+   deployed domains.
 
 Vercel and Neon free-plan quotas and terms can change. Check their current
 limits before relying on continuous public service.
@@ -94,22 +102,30 @@ limits before relying on continuous public service.
 Use Node.js 22.18 or later:
 
 ```sh
-npm install
+npm ci
 npx vercel dev
 ```
 
 Pull local environment variables with `npx vercel env pull .env.local`. Run
 `npm run db:migrate` after setting up the database.
 
+The Python collector uses only the Python standard library (Python 3.12+).
+Run it manually with `VERCEL_APP_URL`, `COLLECTOR_SECRET`, and `FEED_URLS`
+set in the environment:
+
+```sh
+python3 scripts/collect.py
+```
+
 ## API
 
 - `GET /api/health`
 - `GET /api/routes`
-- `GET /api/fares?origin=NBO&destination=MBA`
+- `GET /api/fares?origin=NBO&destination=MBA` (sorted cheapest first)
 - `GET /api/vapid-public-key`
 - `POST /api/subscriptions`
 - `DELETE /api/subscriptions`
-- `POST /api/collect` (requires `Authorization: Bearer $COLLECTOR_SECRET`)
+- `POST /api/collect` (authenticated Python fare-batch ingestion)
 
 ## Privacy and support
 

@@ -54,6 +54,11 @@
             because they are linked to your device or browser.
           </li>
           <li>
+            <strong>Fare and booking information:</strong> configured fare
+            sources provide route, carrier, price, departure, and booking-link
+            information, which we store to compare fares and link to providers.
+          </li>
+          <li>
             <strong>Support messages:</strong> if you email us, we receive your
             email address and whatever information you include in your message.
           </li>
@@ -108,9 +113,11 @@
         <p>
           We share only what is needed to operate Flights Kenya with service
           providers. Vercel hosts the public website and API and may process
-          technical request or diagnostic logs. Neon hosts the PostgreSQL
-          database, which stores fare observations, push subscription details,
-          and hashed rate-limit records. The browser push-notification service
+          technical request or diagnostic logs. GitHub Actions runs the
+          scheduled Python fare collector and may process configured feed URLs
+          and workflow logs. Neon hosts the PostgreSQL database, which stores
+          fare observations, booking links, push subscription details, and
+          hashed rate-limit records. The browser push-notification service
           selected by your device processes the information needed to deliver
           alerts. Those providers process information under their own terms and
           privacy policies. We may also disclose information when required by
