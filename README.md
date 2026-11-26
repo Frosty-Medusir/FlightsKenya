@@ -12,9 +12,11 @@ Wilson airports. The project is operated by Kodovozlabs.
   Postgres.
 - A Python ETL job runs from GitHub Actions every six hours. It fetches
   configured JSON feeds, validates and normalizes fares, then securely sends
-  batches to the API. It also reads publicly listed offers from Skyward
-  Airlines' special-offers page and displays them separately from
-  date-specific fares.
+  future-dated fares to the API without an upper date limit. It also reads
+  publicly listed offers from Skyward Airlines' special-offers page and
+  displays them separately from date-specific fares.
+- Search can optionally filter date-specific fares to a departure date in
+  Kenya time. Leaving the date blank shows all upcoming fares.
 - Fare comparisons are sorted by price, with the cheapest result highlighted.
   Each bookable fare includes a direct provider link from its feed.
 - Public airline starting prices are indicative, not date-specific quotes.
@@ -49,7 +51,9 @@ The example URL is a placeholder, not a real booking page. Supported routes
 are NBO/WIL to MBA, UKA, MYD, KIS, and EDL. No airline sources are
 preconfigured. The collector reads JSON endpoints; it does not bypass login,
 CAPTCHA, or anti-bot controls. Provider-specific HTML scraping requires an
-approved source and a site-specific adapter.
+approved source and a site-specific adapter. The collector can only process
+the dates supplied by each configured feed; it filters out fares whose
+departure time has passed and does not impose a maximum advance-booking date.
 
 ## Deploy to Vercel
 

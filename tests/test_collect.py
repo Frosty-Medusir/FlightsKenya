@@ -112,13 +112,52 @@ class CollectTests(unittest.TestCase):
             "deals": 0,
         }
 
-        result = collect_feed("https://air.example/fares.json", "https://app.example", "secret", 1, 1)
+        result = collect_feed(
+            "https://air.example/fares.json",
+            "https://app.example",
+            "secret",
+            1,
+            1,
+            now=datetime(2026, 11, 26, tzinfo=timezone.utc),
+        )
 
         self.assertEqual(result, (201, 0, 201))
         self.assertEqual(load_batch_mock.call_count, 2)
         self.assertEqual(len(load_batch_mock.call_args_list[0].args[3]), 200)
         self.assertFalse(load_batch_mock.call_args_list[0].kwargs["prune_old"])
         self.assertTrue(load_batch_mock.call_args_list[1].kwargs["prune_old"])
+
+    @patch("scripts.collect.load_batch")
+    @patch("scripts.collect.fetch_feed")
+    def test_collection_discards_past_departures_without_capping_future_fares(
+        self, fetch_feed_mock, load_batch_mock
+    ) -> None:
+        now = datetime(2026, 12, 1, 6, tzinfo=timezone.utc)
+        feed_fares = [
+            {**self.fare, "departure": (now - timedelta(seconds=1)).isoformat()},
+            {**self.fare, "departure": now.isoformat()},
+            {**self.fare, "departure": (now + timedelta(days=1)).isoformat()},
+            {**self.fare, "departure": (now + timedelta(days=3650)).isoformat()},
+        ]
+        fetch_feed_mock.return_value = {"fares": feed_fares}
+        load_batch_mock.return_value = {"inserted": 2, "deals": 0}
+
+        result = collect_feed(
+            "https://air.example/fares.json",
+            "https://app.example",
+            "secret",
+            1,
+            1,
+            now=now,
+        )
+
+        self.assertEqual(result, (2, 2, 2))
+        uploaded_fares = load_batch_mock.call_args.args[3]
+        self.assertEqual(len(uploaded_fares), 2)
+        self.assertEqual(
+            uploaded_fares[1]["departure"],
+            (now + timedelta(days=3650)).isoformat().replace("+00:00", "Z"),
+        )
 
 
 if __name__ == "__main__":

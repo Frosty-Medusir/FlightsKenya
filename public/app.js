@@ -4,9 +4,18 @@ const airportNames = {
 };
 const originSelect = document.querySelector("#origin");
 const destinationSelect = document.querySelector("#destination");
+const departureDateInput = document.querySelector("#departure-date");
 const fareList = document.querySelector("#fare-list");
 const offerList = document.querySelector("#offer-list");
 const statusMessage = document.querySelector("#status");
+
+function currentKenyanDate() {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date()).map(({ type, value }) => [type, value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+departureDateInput.min = currentKenyanDate();
 
 function option(code) {
   return `<option value="${code}">${airportNames[code]} (${code})</option>`;
@@ -25,6 +34,11 @@ function updateDestinations(routes) {
 }
 function money(amount) {
   return new Intl.NumberFormat("en-KE", { maximumFractionDigits: 0 }).format(amount);
+}
+function formatDepartureDate(value) {
+  return new Intl.DateTimeFormat("en-KE", {
+    dateStyle: "medium", timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00.000Z`));
 }
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({
@@ -47,6 +61,8 @@ async function showFares() {
   const destination = destinationSelect.value;
   document.querySelector("#route-title").textContent = `${origin} → ${destination}`;
   const params = new URLSearchParams({ origin, destination });
+  const selectedDate = departureDateInput.value;
+  if (selectedDate) params.set("date", selectedDate);
   try {
     const [fareResponse, offerResponse] = await Promise.all([
       fetch(`/api/fares?${params}`),
@@ -56,11 +72,14 @@ async function showFares() {
       throw new Error("Fare data is temporarily unavailable.");
     }
     const [fares, offers] = await Promise.all([fareResponse.json(), offerResponse.json()]);
+    const noFaresMessage = selectedDate
+      ? `No date-specific fares were found for ${formatDepartureDate(selectedDate)}.`
+      : "No date-specific fares are available.";
     statusMessage.textContent = fares.length
-      ? `${fares.length} date-specific fare${fares.length === 1 ? "" : "s"}, sorted from cheapest`
+      ? `${fares.length} date-specific fare${fares.length === 1 ? "" : "s"}${selectedDate ? ` for ${formatDepartureDate(selectedDate)}` : ""}, sorted from cheapest`
       : offers.length
-        ? "No date-specific fares are available. Check the indicative public offers below."
-        : "No current fares or public offers were found for this route.";
+        ? `${noFaresMessage} Check the indicative public offers below.`
+        : `${noFaresMessage} No current public offers were found for this route.`;
     const median = fares.find((fare) => fare.median_60d_kes !== null)?.median_60d_kes;
     document.querySelector("#median-label").textContent = median
       ? `60-day median · KES ${money(median)}` : "Collecting history for route median";
