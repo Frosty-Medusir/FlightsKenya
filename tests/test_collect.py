@@ -7,6 +7,7 @@ from scripts.collect import (
     normalize_fare,
     parse_feed,
     parse_feed_urls,
+    parse_skyward_offers,
     validate_app_url,
 )
 
@@ -59,6 +60,37 @@ class CollectTests(unittest.TestCase):
         self.assertEqual(validate_app_url("https://flights.example/"), "https://flights.example")
         with self.assertRaises(ValueError):
             validate_app_url("http://localhost:3000")
+
+    def test_skyward_offer_parser_maps_published_promotions_without_dates(self) -> None:
+        html = """
+        <div class="bn-content absolute">
+          <div class="sub-title">Fly from Nairobi to Mombasa</div>
+          <h3 class="title">From Ksh 7,000</h3>
+          <a href="https://fo-emea.ttinteractive.com/booking">Book Now</a>
+        </div>
+        <div class="bn-content absolute">
+          <div class="sub-title">Fly from Wilson to Diani</div>
+          <h3 class="title">From Ksh 7,000</h3>
+          <a href="https://fo-emea.ttinteractive.com/booking">Book Now</a>
+        </div>
+        <div class="bn-content absolute">
+          <div class="sub-title">Fly from a made-up airport to Nowhere</div>
+          <h3 class="title">From Ksh 1,000</h3>
+          <a href="https://fo-emea.ttinteractive.com/booking">Book Now</a>
+        </div>
+        """
+
+        offers = parse_skyward_offers(html)
+
+        self.assertEqual(len(offers), 2)
+        mombasa, diani = offers
+        self.assertIsNone(mombasa["origin_code"])
+        self.assertEqual(mombasa["origin_label"], "Nairobi (airport not specified)")
+        self.assertEqual(mombasa["destination"], "MBA")
+        self.assertEqual(mombasa["price_kes"], 7000)
+        self.assertEqual(mombasa["offer_title"], "Special offer")
+        self.assertEqual(diani["origin_code"], "WIL")
+        self.assertEqual(diani["destination"], "UKA")
 
     @patch("scripts.collect.load_batch")
     @patch("scripts.collect.fetch_feed")
