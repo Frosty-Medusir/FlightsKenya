@@ -91,26 +91,36 @@ async function showFares() {
   searchNote.textContent = "Opens Skyscanner; route coverage, prices, and currency may differ.";
   externalSearch.replaceChildren(searchLink, searchNote);
   try {
-    const [fareResponse, offerResponse] = await Promise.all([
+    const [fareResponse, offerResponse, liveResponse] = await Promise.all([
       fetch(`/api/fares?${params}`),
       fetch(`/api/offers?${params}`),
+      selectedDate
+        ? fetch(`/api/live-fares?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&date=${encodeURIComponent(selectedDate)}`)
+        : Promise.resolve(null),
     ]);
     if (!fareResponse.ok || !offerResponse.ok) {
       throw new Error("Fare data is temporarily unavailable.");
     }
-    const [fares, offers] = await Promise.all([fareResponse.json(), offerResponse.json()]);
+    const [fares, offers, livePayload] = await Promise.all([
+      fareResponse.json(),
+      offerResponse.json(),
+      liveResponse && liveResponse.ok ? liveResponse.json() : Promise.resolve([]),
+    ]);
+    const liveFares = Array.isArray(livePayload) ? livePayload : [];
     const noFaresMessage = selectedDate
       ? `No date-specific fares were found for ${formatDepartureDate(selectedDate)}.`
       : "No date-specific fares are available.";
     statusMessage.textContent = fares.length
       ? `${fares.length} date-specific fare${fares.length === 1 ? "" : "s"}${selectedDate ? ` for ${formatDepartureDate(selectedDate)}` : ""}, sorted from cheapest`
-      : offers.length
-        ? `${noFaresMessage} Check the indicative public offers below.`
-        : `${noFaresMessage} No current public offers were found for this route.`;
+      : liveFares.length
+        ? `${liveFares.length} live Google Flights result${liveFares.length === 1 ? "" : "s"} found${selectedDate ? ` for ${formatDepartureDate(selectedDate)}` : ""}.`
+        : offers.length
+          ? `${noFaresMessage} Check the indicative public offers below.`
+          : `${noFaresMessage} No current public offers were found for this route.`;
     const median = fares.find((fare) => fare.median_60d_kes !== null)?.median_60d_kes;
     document.querySelector("#median-label").textContent = median
       ? `60-day median · KES ${money(median)}` : "Collecting history for route median";
-    fareList.innerHTML = fares.map((fare, index) => {
+    const storedFareCards = fares.map((fare, index) => {
       const when = new Date(fare.departure).toLocaleString("en-KE", {
         weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
       });
@@ -128,7 +138,21 @@ async function showFares() {
         <span class="price">KES ${money(fare.price_kes)}<small>one way</small></span>
         ${bookingAction}
       </article>`;
-    }).join("");
+    });
+    const liveFareCards = liveFares.map((fare) => {
+      const when = new Date(fare.departure).toLocaleString("en-KE", {
+        weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+      });
+      const stops = fare.stops === 0 ? "Nonstop" : `${fare.stops} stop${fare.stops === 1 ? "" : "s"}`;
+      const liveSearchUrl = buildSkyscannerSearchUrl(origin, destination, selectedDate);
+      return `<article class="fare-card live-fare">
+        <span class="carrier">${escapeHtml(fare.carrier)}<small class="deal"> · Live Google Flights</small></span>
+        <span class="departure">${when} · ${stops}</span>
+        <span class="price">KES ${money(fare.price_kes)}<small>live result · confirm final fare</small></span>
+        <a class="book-link" href="${escapeHtml(liveSearchUrl)}" target="_blank" rel="noopener noreferrer">Check live price ↗</a>
+      </article>`;
+    });
+    fareList.innerHTML = [...storedFareCards, ...liveFareCards].join("");
     offerList.innerHTML = offers.length ? offers.map((offer) => {
       const bookingUrl = safeBookingUrl(offer.booking_url);
       const sourceUrl = safeBookingUrl(offer.source_url);
