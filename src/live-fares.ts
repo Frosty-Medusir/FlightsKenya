@@ -9,8 +9,44 @@ export interface LiveFareInput {
   booking_url: string;
 }
 
+export interface ApifyFlightSearchInput {
+  departure_id: string;
+  arrival_id: string;
+  outbound_date: string;
+  adults: number;
+  children: number;
+  infants: number;
+  currency: string;
+  hl: string;
+  gl: string;
+  exclude_basic: boolean;
+  fetch_booking_options: boolean;
+  max_pages: number;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+export function createApifyFlightSearchInput(
+  origin: string,
+  destination: string,
+  date: string,
+): ApifyFlightSearchInput {
+  return {
+    departure_id: origin,
+    arrival_id: destination,
+    outbound_date: date,
+    adults: 1,
+    children: 0,
+    infants: 0,
+    currency: "KES",
+    hl: "en",
+    gl: "us",
+    exclude_basic: false,
+    fetch_booking_options: false,
+    max_pages: 1,
+  };
 }
 
 export function parseApifyFlights(payload: unknown, origin: string, destination: string): LiveFareInput[] {

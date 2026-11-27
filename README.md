@@ -23,6 +23,8 @@ Wilson airports. The project is operated by Kodovozlabs.
 - When `APIFY_TOKEN` is configured and a departure date is selected, the
   website can run the Google Flights Actor for a live route preview. Live
   results are clearly labeled and may require confirmation of the final fare.
+  Each search can incur Apify usage charges; configure an account spending
+  limit and keep the token only in server-side environment variables.
 - Fare comparisons are sorted by price, with the cheapest result highlighted.
   Each bookable fare includes a direct provider link from its feed.
 - Public airline starting prices are indicative, not date-specific quotes.
@@ -90,6 +92,8 @@ has passed and does not impose a maximum advance-booking date.
    ```
 
    Keep the VAPID private key and collector secret out of source control.
+   The live fare preview also requires `APIFY_TOKEN` in the Vercel environment.
+   Redeploy after adding or changing it.
 4. Install dependencies, link the project, pull local environment variables,
    and apply every SQL migration:
 
