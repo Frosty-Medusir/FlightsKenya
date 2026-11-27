@@ -20,6 +20,9 @@ Wilson airports. The project is operated by Kodovozlabs.
 - The optional Skyscanner link opens an external route search, with the selected
   departure date when provided. Skyscanner results are not added to the
   Flights Kenya fare list.
+- When `APIFY_TOKEN` is configured and a departure date is selected, the
+  website can run the Google Flights Actor for a live route preview. Live
+  results are clearly labeled and may require confirmation of the final fare.
 - Fare comparisons are sorted by price, with the cheapest result highlighted.
   Each bookable fare includes a direct provider link from its feed.
 - Public airline starting prices are indicative, not date-specific quotes.
@@ -73,6 +76,7 @@ has passed and does not impose a maximum advance-booking date.
    | Variable | Description |
    | --- | --- |
    | `DATABASE_URL` | Neon Postgres connection string |
+   | `APIFY_TOKEN` | Optional Apify API token for live Google Flights searches |
    | `COLLECTOR_SECRET` | Long random secret for authenticated fare ingestion |
    | `VAPID_PUBLIC_KEY` | Base64url Web Push public key |
    | `VAPID_PRIVATE_KEY` | Base64url Web Push private key |
