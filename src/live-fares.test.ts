@@ -1,6 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseApifyFlights } from "./live-fares.ts";
+import { createApifyFlightSearchInput, parseApifyFlights } from "./live-fares.ts";
+
+test("Apify search input uses a supported Google Flights locale and KES currency", () => {
+  assert.deepEqual(createApifyFlightSearchInput("NBO", "MBA", "2026-12-22"), {
+    departure_id: "NBO",
+    arrival_id: "MBA",
+    outbound_date: "2026-12-22",
+    adults: 1,
+    children: 0,
+    infants: 0,
+    currency: "KES",
+    hl: "en",
+    gl: "us",
+    exclude_basic: false,
+    fetch_booking_options: false,
+    max_pages: 1,
+  });
+});
 
 test("Apify live-flight payloads become normalized route results", () => {
   const fares = parseApifyFlights(

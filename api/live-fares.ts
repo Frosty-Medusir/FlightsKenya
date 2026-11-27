@@ -1,10 +1,12 @@
 import { isAirport } from "../src/airports.ts";
 import { isValidDepartureDate } from "../src/fares.ts";
-import { parseApifyFlights } from "../src/live-fares.ts";
+import { createApifyFlightSearchInput, parseApifyFlights } from "../src/live-fares.ts";
 import type { VercelRequest, VercelResponse } from "../src/vercel.ts";
 
 const ACTOR = "johnvc~Google-Flights-Data-Scraper-Flight-and-Price-Search";
 const APIFY_API = "https://api.apify.com/v2";
+
+export const config = { maxDuration: 90 };
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
   if (request.method !== "GET") {
@@ -39,31 +41,28 @@ export default async function handler(request: VercelRequest, response: VercelRe
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          departure_id: origin,
-          arrival_id: destination,
-          outbound_date: date,
-          adults: 1,
-          children: 0,
-          infants: 0,
-          currency: "KES",
-          hl: "en",
-          gl: "ke",
-          exclude_basic: false,
-          fetch_booking_options: false,
-          max_pages: 1,
-        }),
+        body: JSON.stringify(createApifyFlightSearchInput(origin, destination, date)),
         signal: AbortSignal.timeout(70_000),
       },
     );
     if (!runResponse.ok) {
-      throw new Error(`Apify run returned HTTP ${runResponse.status}.`);
+      console.error("Apify run request was rejected:", runResponse.status, await runResponse.text());
+      const message = runResponse.status === 401 || runResponse.status === 403
+        ? "Apify token is invalid or cannot run this Actor."
+        : runResponse.status === 400
+          ? "Apify rejected the search parameters."
+          : `Apify run request failed (HTTP ${runResponse.status}).`;
+      return response.status(502).json({ error: message });
     }
     const runPayload = await runResponse.json() as {
-      data?: { status?: string; defaultDatasetId?: string };
+      data?: { status?: string; defaultDatasetId?: string; id?: string };
     };
     if (runPayload.data?.status !== "SUCCEEDED" || !runPayload.data.defaultDatasetId) {
-      throw new Error("Apify live search did not complete.");
+      const status = runPayload.data?.status ?? "unknown";
+      console.error("Apify live search did not complete:", status, runPayload.data?.id);
+      return response.status(502).json({
+        error: `Apify live search did not complete (status: ${status}).`,
+      });
     }
 
     const datasetResponse = await fetch(
@@ -74,7 +73,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
       },
     );
     if (!datasetResponse.ok) {
-      throw new Error(`Apify dataset returned HTTP ${datasetResponse.status}.`);
+      console.error("Apify dataset request failed:", datasetResponse.status, await datasetResponse.text());
+      return response.status(502).json({
+        error: `Could not read Apify flight results (HTTP ${datasetResponse.status}).`,
+      });
     }
     const dataset = await datasetResponse.json();
     const fares = parseApifyFlights(dataset, origin, destination);
@@ -82,6 +84,9 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return response.status(200).json(fares);
   } catch (error) {
     console.error("Live fare search failed:", error);
-    return response.status(502).json({ error: "Live fare search is temporarily unavailable." });
+    const message = error instanceof Error && error.name === "TimeoutError"
+      ? "Live search timed out. Please try again."
+      : "Live fare search is temporarily unavailable. Check the deployment logs.";
+    return response.status(502).json({ error: message });
   }
 }

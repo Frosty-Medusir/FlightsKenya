@@ -104,19 +104,28 @@ async function showFares() {
     const [fares, offers, livePayload] = await Promise.all([
       fareResponse.json(),
       offerResponse.json(),
-      liveResponse && liveResponse.ok ? liveResponse.json() : Promise.resolve([]),
+      liveResponse ? liveResponse.json() : Promise.resolve(null),
     ]);
-    const liveFares = Array.isArray(livePayload) ? livePayload : [];
+    const liveFares = liveResponse?.ok && Array.isArray(livePayload) ? livePayload : [];
+    const liveError = liveResponse && !liveResponse.ok
+      ? livePayload?.error || "Live Google Flights search is unavailable."
+      : null;
     const noFaresMessage = selectedDate
       ? `No date-specific fares were found for ${formatDepartureDate(selectedDate)}.`
       : "No date-specific fares are available.";
-    statusMessage.textContent = fares.length
+    const fareStatus = fares.length
       ? `${fares.length} date-specific fare${fares.length === 1 ? "" : "s"}${selectedDate ? ` for ${formatDepartureDate(selectedDate)}` : ""}, sorted from cheapest`
-      : liveFares.length
-        ? `${liveFares.length} live Google Flights result${liveFares.length === 1 ? "" : "s"} found${selectedDate ? ` for ${formatDepartureDate(selectedDate)}` : ""}.`
-        : offers.length
-          ? `${noFaresMessage} Check the indicative public offers below.`
-          : `${noFaresMessage} No current public offers were found for this route.`;
+      : offers.length
+        ? `${noFaresMessage} Check the indicative public offers below.`
+        : noFaresMessage;
+    const liveStatus = !selectedDate
+      ? "Choose a departure date to search Google Flights live."
+      : liveError
+        ? `Live search error: ${liveError}`
+        : liveFares.length
+          ? `${liveFares.length} live Google Flights result${liveFares.length === 1 ? "" : "s"} found.`
+          : "Google Flights returned no results for this route and date.";
+    statusMessage.textContent = `${fareStatus} ${liveStatus}`;
     const median = fares.find((fare) => fare.median_60d_kes !== null)?.median_60d_kes;
     document.querySelector("#median-label").textContent = median
       ? `60-day median · KES ${money(median)}` : "Collecting history for route median";
