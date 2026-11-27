@@ -137,14 +137,27 @@ npx vercel dev
 Pull local environment variables with `npx vercel env pull .env.local`. Run
 `npm run db:migrate` after setting up the database.
 
-The Python collector requires Python 3.12+ and `certifi` for verified HTTPS.
-Install its dependency and run it manually with `VERCEL_APP_URL`,
+The Python tools require Python 3.12+; the collector uses `certifi` for
+verified HTTPS, and the cheapest-flight ETL uses `pandas`. Install their
+dependencies and run the collector with `VERCEL_APP_URL`,
 `COLLECTOR_SECRET`, and optional `FEED_URLS` set in the environment:
 
 ```sh
 python3 -m pip install -r scripts/requirements.txt
 python3 scripts/collect.py
 ```
+
+To find the cheapest priced itinerary, install the same Python requirements,
+set `APIFY_TOKEN`, then run:
+
+```sh
+python3 scripts/cheapest_flight.py --origin NBO --destination MBA --date 2026-11-29
+```
+
+This performs one live Google Flights Actor page search and writes the priced
+options, cheapest first, to a CSV. Use `--dataset-id <id>` to process an
+existing Apify dataset without starting a new Actor run. Live prices are kept
+in USD because the Actor rejects KES requests.
 
 ## API
 
