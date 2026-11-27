@@ -1,6 +1,6 @@
-const CACHE = "flights-kenya-v4";
+const CACHE = "flights-kenya-v5";
 const APP_SHELL = [
-  "/", "/styles.css", "/app.js", "/manifest.json", "/logo.png",
+  "/", "/styles.css", "/app.js", "/skyscanner.js", "/manifest.json", "/logo.png",
   "/favicon.png", "/privacy.html",
 ];
 

@@ -17,6 +17,9 @@ Wilson airports. The project is operated by Kodovozlabs.
   displays them separately from date-specific fares.
 - Search can optionally filter date-specific fares to a departure date in
   Kenya time. Leaving the date blank shows all upcoming fares.
+- The optional Skyscanner link opens an external route search, with the selected
+  departure date when provided. Skyscanner results are not added to the
+  Flights Kenya fare list.
 - Fare comparisons are sorted by price, with the cheapest result highlighted.
   Each bookable fare includes a direct provider link from its feed.
 - Public airline starting prices are indicative, not date-specific quotes.
