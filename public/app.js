@@ -1,3 +1,5 @@
+import { buildSkyscannerSearchUrl } from "./skyscanner.js";
+
 const airportNames = {
   NBO: "Nairobi · JKIA", WIL: "Nairobi · Wilson", MBA: "Mombasa",
   UKA: "Ukunda", MYD: "Malindi", KIS: "Kisumu", EDL: "Eldoret",
@@ -8,6 +10,7 @@ const departureDateInput = document.querySelector("#departure-date");
 const fareList = document.querySelector("#fare-list");
 const offerList = document.querySelector("#offer-list");
 const statusMessage = document.querySelector("#status");
+const externalSearch = document.querySelector("#external-search");
 
 const introVideo = document.querySelector("#intro-video");
 if (
@@ -76,6 +79,17 @@ async function showFares() {
   const params = new URLSearchParams({ origin, destination });
   const selectedDate = departureDateInput.value;
   if (selectedDate) params.set("date", selectedDate);
+  const searchLink = document.createElement("a");
+  searchLink.className = "book-link";
+  searchLink.href = buildSkyscannerSearchUrl(origin, destination, selectedDate || null);
+  searchLink.target = "_blank";
+  searchLink.rel = "noopener noreferrer";
+  searchLink.textContent = selectedDate
+    ? "Check this date on Skyscanner ↗"
+    : "Search this route on Skyscanner ↗";
+  const searchNote = document.createElement("span");
+  searchNote.textContent = "Opens Skyscanner; route coverage, prices, and currency may differ.";
+  externalSearch.replaceChildren(searchLink, searchNote);
   try {
     const [fareResponse, offerResponse] = await Promise.all([
       fetch(`/api/fares?${params}`),

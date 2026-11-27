@@ -49,6 +49,8 @@ select:focus, input[type="date"]:focus { border-color: rgba(200, 16, 46, .42); b
 .public-offers .section-heading { padding-bottom: 14px; }
 .offer-disclaimer { margin: 14px 0 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
 .offer-list, .fare-list { display: grid; gap: 12px; }
+.external-search { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; }
+.external-search span { color: var(--muted); font-size: 11px; }
 .empty-offers { padding: 18px 0; color: var(--muted); font-size: 12px; }
 .offer-card { background: rgba(255, 250, 240, .76); }
 .offer-actions { display: flex; align-items: center; gap: 12px; }
