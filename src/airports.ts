@@ -1,4 +1,4 @@
-export const AIRPORTS = ["NBO", "WIL", "MBA", "UKA", "MYD", "KIS", "EDL"] as const;
+export const AIRPORTS = ["NBO", "WIL", "MBA", "UKA", "MYD", "KIS", "EDL", "KTL"] as const;
 export type Airport = (typeof AIRPORTS)[number];
 
 export const ROUTES = AIRPORTS.flatMap((origin) =>

@@ -42,9 +42,37 @@ test("Apify live-flight payloads become normalized route results", () => {
   assert.equal(fares[0].origin, "NBO");
   assert.equal(fares[0].destination, "MBA");
   assert.equal(fares[0].carrier, "Kenya Airways");
+  assert.equal(fares[0].flight_number, "");
   assert.equal(fares[0].price_usd, 121);
   assert.equal(fares[0].departure, "2026-12-22T09:05:00.000Z");
   assert.equal(fares[0].stops, 0);
+});
+
+test("Apify live-flight parsing includes unpriced schedules from other flights", () => {
+  const fares = parseApifyFlights(
+    [{
+      best_flights: [],
+      other_flights: [
+        {
+          flights: [{
+            departure_airport: { id: "NBO", time: "2026-11-29 06:10" },
+            arrival_airport: { id: "EDL", time: "2026-11-29 07:10" },
+            airline: "Jambojet Limited",
+            flight_number: "JM 8660",
+          }],
+          layovers: [],
+          total_duration: 60,
+        },
+      ],
+    }],
+    "NBO",
+    "EDL",
+  );
+
+  assert.equal(fares.length, 1);
+  assert.equal(fares[0].carrier, "Jambojet Limited");
+  assert.equal(fares[0].flight_number, "JM 8660");
+  assert.equal(fares[0].price_usd, null);
 });
 
 test("Apify live-flight payloads reject malformed or duplicate rows", () => {

@@ -61,7 +61,7 @@ Optionally add authorized HTTPS JSON feed URLs to the GitHub Actions
 ```
 
 The example URL is a placeholder, not a real booking page. Available
-locations are NBO, WIL, MBA, UKA, MYD, KIS, and EDL; fares appear only for
+locations are NBO, WIL, MBA, UKA, MYD, KIS, EDL, and KTL; fares appear only for
 routes included in configured feeds. No airline sources are preconfigured.
 The collector reads JSON endpoints; it does not bypass login, CAPTCHA, or
 anti-bot controls. Provider-specific HTML scraping requires an approved

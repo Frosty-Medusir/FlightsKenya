@@ -2,7 +2,7 @@ import { buildSkyscannerSearchUrl } from "./skyscanner.js";
 
 const airportNames = {
   NBO: "Nairobi · JKIA", WIL: "Nairobi · Wilson", MBA: "Mombasa",
-  UKA: "Ukunda", MYD: "Malindi", KIS: "Kisumu", EDL: "Eldoret",
+  UKA: "Ukunda", MYD: "Malindi", KIS: "Kisumu", EDL: "Eldoret", KTL: "Kitale",
 };
 const originSelect = document.querySelector("#origin");
 const destinationSelect = document.querySelector("#destination");
@@ -122,9 +122,11 @@ async function showFares() {
       ? "Choose a departure date to search Google Flights live."
       : liveError
         ? `Live search error: ${liveError}`
-        : liveFares.length
-          ? `${liveFares.length} live Google Flights result${liveFares.length === 1 ? "" : "s"} found.`
-          : "Google Flights returned no results for this route and date.";
+        : liveFares.length && liveFares.every((fare) => fare.price_usd === null)
+          ? `${liveFares.length} flight schedule${liveFares.length === 1 ? "" : "s"} found; prices unavailable from Google Flights.`
+          : liveFares.length
+            ? `${liveFares.length} live Google Flights option${liveFares.length === 1 ? "" : "s"} found.`
+            : "Google Flights returned no results for this route and date.";
     statusMessage.textContent = `${fareStatus} ${liveStatus}`;
     const median = fares.find((fare) => fare.median_60d_kes !== null)?.median_60d_kes;
     document.querySelector("#median-label").textContent = median
@@ -154,10 +156,13 @@ async function showFares() {
       });
       const stops = fare.stops === 0 ? "Nonstop" : `${fare.stops} stop${fare.stops === 1 ? "" : "s"}`;
       const liveSearchUrl = buildSkyscannerSearchUrl(origin, destination, selectedDate);
+      const price = fare.price_usd === null
+        ? '<span class="price">Price unavailable<small>schedule only · confirm with airline</small></span>'
+        : `<span class="price">USD ${money(fare.price_usd)}<small>live result · confirm final fare</small></span>`;
       return `<article class="fare-card live-fare">
-        <span class="carrier">${escapeHtml(fare.carrier)}<small class="deal"> · Live Google Flights</small></span>
+        <span class="carrier">${escapeHtml(fare.carrier)}${fare.flight_number ? ` · ${escapeHtml(fare.flight_number)}` : ""}<small class="deal"> · Live Google Flights</small></span>
         <span class="departure">${when} · ${stops}</span>
-        <span class="price">USD ${money(fare.price_usd)}<small>live result · confirm final fare</small></span>
+        ${price}
         <a class="book-link" href="${escapeHtml(liveSearchUrl)}" target="_blank" rel="noopener noreferrer">Check live price ↗</a>
       </article>`;
     });

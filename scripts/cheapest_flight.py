@@ -15,7 +15,7 @@ import pandas as pd
 
 APIFY_API = "https://api.apify.com/v2"
 ACTOR = "johnvc~Google-Flights-Data-Scraper-Flight-and-Price-Search"
-AIRPORTS = frozenset({"NBO", "WIL", "MBA", "UKA", "MYD", "KIS", "EDL"})
+AIRPORTS = frozenset({"NBO", "WIL", "MBA", "UKA", "MYD", "KIS", "EDL", "KTL"})
 REQUEST_TIMEOUT_SECONDS = 75
 MAX_RESPONSE_BYTES = 5_000_000
 OUTPUT_COLUMNS = [
