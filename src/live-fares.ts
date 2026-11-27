@@ -3,7 +3,7 @@ export interface LiveFareInput {
   destination: string;
   departure: string;
   carrier: string;
-  price_kes: number;
+  price_usd: number;
   stops: number;
   duration_minutes: number;
   booking_url: string;
@@ -40,7 +40,7 @@ export function createApifyFlightSearchInput(
     adults: 1,
     children: 0,
     infants: 0,
-    currency: "KES",
+    currency: "USD",
     hl: "en",
     gl: "us",
     exclude_basic: false,
@@ -82,7 +82,7 @@ export function parseApifyFlights(payload: unknown, origin: string, destination:
         destination,
         departure: normalizedDeparture,
         carrier,
-        price_kes: price as number,
+        price_usd: price as number,
         stops: Array.isArray(flight.layovers) ? flight.layovers.length : 0,
         duration_minutes: typeof flight.total_duration === "number" ? flight.total_duration : 0,
         booking_url: "",
@@ -90,5 +90,5 @@ export function parseApifyFlights(payload: unknown, origin: string, destination:
     }
   }
 
-  return fares.sort((a, b) => a.price_kes - b.price_kes).slice(0, 10);
+  return fares.sort((a, b) => a.price_usd - b.price_usd).slice(0, 10);
 }

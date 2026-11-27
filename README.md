@@ -22,7 +22,9 @@ Wilson airports. The project is operated by Kodovozlabs.
   Flights Kenya fare list.
 - When `APIFY_TOKEN` is configured and a departure date is selected, the
   website can run the Google Flights Actor for a live route preview. Live
-  results are clearly labeled and may require confirmation of the final fare.
+  results are shown in USD because the Actor's Google Flights source rejects
+  KES requests; they are clearly labeled and may require confirmation of the
+  final fare.
   Each search can incur Apify usage charges; configure an account spending
   limit and keep the token only in server-side environment variables.
 - Fare comparisons are sorted by price, with the cheapest result highlighted.

@@ -157,7 +157,7 @@ async function showFares() {
       return `<article class="fare-card live-fare">
         <span class="carrier">${escapeHtml(fare.carrier)}<small class="deal"> · Live Google Flights</small></span>
         <span class="departure">${when} · ${stops}</span>
-        <span class="price">KES ${money(fare.price_kes)}<small>live result · confirm final fare</small></span>
+        <span class="price">USD ${money(fare.price_usd)}<small>live result · confirm final fare</small></span>
         <a class="book-link" href="${escapeHtml(liveSearchUrl)}" target="_blank" rel="noopener noreferrer">Check live price ↗</a>
       </article>`;
     });
