@@ -51,7 +51,7 @@ export function normalizePublicOffer(value: unknown): PublicOffer | null {
   if (
     !originIsValid ||
     !originLabelIsValid ||
-    !["MBA", "UKA", "MYD", "KIS", "EDL"].includes(destination) ||
+    !["MBA", "UKA", "MYD", "KIS", "EDL", "KTL"].includes(destination) ||
     !isAirport(destination) ||
     !carrier ||
     carrier.length > 120 ||

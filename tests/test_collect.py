@@ -41,6 +41,11 @@ class CollectTests(unittest.TestCase):
         self.assertIsNone(normalize_fare({**self.fare, "departure": "2026-12-01T09:30:00"}))
         self.assertIsNone(normalize_fare({**self.fare, "booking_url": ""}))
 
+    def test_accepts_kitale_routes(self) -> None:
+        self.assertIsNotNone(
+            normalize_fare({**self.fare, "origin": "KTL", "destination": "NBO"})
+        )
+
     def test_feed_parser_rejects_bad_rows_and_deduplicates(self) -> None:
         fares, rejected = parse_feed(
             {"fares": [self.fare, self.fare, {"origin": "NBO", "destination": "XXX"}]}

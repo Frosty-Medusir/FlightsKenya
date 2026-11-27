@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 
 import certifi
 
-AIRPORTS = frozenset({"NBO", "WIL", "MBA", "UKA", "MYD", "KIS", "EDL"})
+AIRPORTS = frozenset({"NBO", "WIL", "MBA", "UKA", "MYD", "KIS", "EDL", "KTL"})
 SKYWARD_OFFERS_URL = "https://skywardairlines.com/skyward-special-offers/"
 SKYWARD_BOOKING_HOSTS = frozenset({"skywardairlines.com", "fo-emea.ttinteractive.com"})
 SKYWARD_ROUTES = {

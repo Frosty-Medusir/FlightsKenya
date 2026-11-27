@@ -7,6 +7,7 @@ test("every available airport can be selected as an origin and destination", () 
   assert.deepEqual([...new Set(ROUTES.map((route) => route.origin))], AIRPORTS);
   assert.equal(ROUTES.length, AIRPORTS.length * (AIRPORTS.length - 1));
   assert.equal(ROUTES.some(({ origin, destination }) => origin === destination), false);
+  assert.equal(ROUTES.some(({ origin, destination }) => origin === "NBO" && destination === "KTL"), true);
 });
 
 test("departure dates require a valid YYYY-MM-DD calendar date", () => {
