@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "apify": {
+      "type": "http",
+      "url": "https://mcp.apify.com/?tools=actors%2Cdocs%2Cjohnvc%2FGoogle-Flights-Data-Scraper-Flight-and-Price-Search"
+    }
+  }
+}
